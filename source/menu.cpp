@@ -84,6 +84,18 @@ void menu_lvl1(Flashcart* cart, bool isDevMode)
 		}
 		if (keysDown() & KEY_A)
 		{
+			if (isDSiMode()) {
+				// Reset card slot
+				disableSlot1();
+				for(int i = 0; i < 25; i++) { swiWaitForVBlank(); }
+				enableSlot1();
+				for(int i = 0; i < 15; i++) { swiWaitForVBlank(); }
+
+				// Dummy command sent after card reset
+				cardParamCommand (CARD_CMD_DUMMY, 0,
+					CARD_ACTIVATE | CARD_nRESET | CARD_CLK_SLOW | CARD_BLK_SIZE(1) | CARD_DELAY1(0x1FFF) | CARD_DELAY2(0x3F),
+					NULL, 0);
+			}
 			cart = flashcart_list->at(menu_sel); //Set the cart equal to whatever we had selected from before
 			card.state(NTRState::Key2);
 			if (!cart->initialize(&card)) //If cart initialization fails, do all this and then break to main menu
