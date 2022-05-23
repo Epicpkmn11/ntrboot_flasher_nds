@@ -32,10 +32,10 @@ namespace flashcart_core {
 			static bool first_open = true;
 			if (!fatInitDefault()) { return -1; }
 
-			mkdir("fat:/ntrboot", 0700); //If the directory exists, this line isn't going to crash the program or anything like that
+			mkdir("/ntrboot", 0700); //If the directory exists, this line isn't going to crash the program or anything like that
 
 			// Overwrite if this is our first time opening the file.
-			FILE *logfile = fopen("fat:/ntrboot/ntrboot.log", first_open ? "w" : "a");
+			FILE *logfile = fopen("/ntrboot/ntrboot.log", first_open ? "w" : "a");
 			if (!logfile) { return -1; }
 			first_open = false;
 
@@ -87,9 +87,9 @@ bool file_exists(const char* filename) {
 }
 
 static char* calculate_backup_path(const char *cart_name) {
-    int path_len = snprintf(NULL, 0, "fat:/ntrboot/%s-backup.bin", cart_name) + 1;
+    int path_len = snprintf(NULL, 0, "/ntrboot/%s-backup.bin", cart_name) + 1;
     char *path = (char *)malloc(path_len);
-    snprintf(path, path_len, "fat:/ntrboot/%s-backup.bin", cart_name);
+    snprintf(path, path_len, "/ntrboot/%s-backup.bin", cart_name);
     return path;
 }
 
@@ -105,7 +105,7 @@ return_codes_t InjectFIRM(flashcart_core::Flashcart* cart, bool isDevMode)
 		return NO_BACKUP_FOUND;
 	} free(backup_path);
 
-	FILE *FileIn = fopen("fat:/ntrboot/boot9strap_ntr.firm", "rb");
+	FILE *FileIn = fopen("/ntrboot/boot9strap_ntr.firm", "rb");
 	if (!FileIn) { 
 		fatUnmount("fat:/");
 		return FILE_OPEN_FAILED; 
@@ -140,7 +140,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 
 	if (!fatInitDefault()) { return FAT_MOUNT_FAILED; }
 
-	mkdir("fat:/ntrboot", 0700); //If the directory exists, this line isn't going to crash the program or anything like that
+	mkdir("/ntrboot", 0700); //If the directory exists, this line isn't going to crash the program or anything like that
 
 	fatUnmount("fat:/");
 
