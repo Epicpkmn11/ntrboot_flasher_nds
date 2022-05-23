@@ -1,6 +1,5 @@
 #include "nds_platform.h"
 #include <nds.h>
-#include <nds/arm9/dldi.h>
 #include <fat.h>
 #include "device.h"
 #include "binaries.h"
