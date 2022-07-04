@@ -97,7 +97,9 @@ void menu_lvl1(Flashcart* cart, bool isDevMode)
 					NULL, 0);
 			}
 			cart = flashcart_list->at(menu_sel); //Set the cart equal to whatever we had selected from before
-			card.state(NTRState::Key2);
+			if (strcmp(cart->getShortName(), "DSTT") != 0) { //Skip this on DSTT or it fails
+				card.state(NTRState::Key2);
+			}
 			if (!cart->initialize(&card)) //If cart initialization fails, do all this and then break to main menu
 			{
 				DrawString(TOP_SCREEN, FONT_WIDTH, 8 * FONT_HEIGHT, COLOR_RED, "Flashcart setup failed!\nPress <B>");
