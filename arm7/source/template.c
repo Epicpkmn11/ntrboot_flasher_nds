@@ -28,15 +28,11 @@
 
 ---------------------------------------------------------------------------------*/
 #include <nds.h>
-#include <dswifi7.h>
-#include <maxmod7.h>
 
 //---------------------------------------------------------------------------------
 void VblankHandler(void) {
 //---------------------------------------------------------------------------------
-	Wifi_Update();
 }
-
 
 //---------------------------------------------------------------------------------
 void VcountHandler() {
@@ -71,12 +67,7 @@ int main() {
 	fifoInit();
 	touchInit();
 
-	mmInstall(FIFO_MAXMOD);
-
 	SetYtrigger(80);
-
-	installWifiFIFO();
-	installSoundFIFO();
 
 	installSystemFIFO();
 
