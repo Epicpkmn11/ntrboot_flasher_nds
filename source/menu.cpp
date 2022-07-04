@@ -131,7 +131,12 @@ void menu_lvl2(Flashcart* cart, bool isDevMode)
 		scanKeys();
 		DrawString(TOP_SCREEN, FONT_WIDTH, (2 * FONT_HEIGHT), (menu_sel == 0) ? COLOR_RED : COLOR_WHITE, "Inject FIRM");	//0
 		DrawString(TOP_SCREEN, FONT_WIDTH, (3 * FONT_HEIGHT), (menu_sel == 1) ? COLOR_RED : COLOR_WHITE, "Dump flash");		//1
-		if (keysDown() & KEY_DOWN && menu_sel < 1)
+		if(isDSiMode())
+		{
+			DrawString(TOP_SCREEN, FONT_WIDTH, (4 * FONT_HEIGHT), (menu_sel == 2) ? COLOR_RED : COLOR_WHITE, "Restore flash");	//2
+		}
+
+		if (keysDown() & KEY_DOWN && menu_sel < (isDSiMode() ? 2 : 1))
 		{
 			menu_sel++;
 		}
@@ -153,9 +158,10 @@ void menu_lvl2(Flashcart* cart, bool isDevMode)
 				ClearScreen(BOTTOM_SCREEN, COLOR_BLACK);
 				if (menu_sel == 0) {
 					ntrboot_return = InjectFIRM(cart, isDevMode);
-				} 
-				else {
+				} else if (menu_sel == 1) {
 					ntrboot_return = DumpFlash(cart);
+				} else if (menu_sel == 2) {
+					ntrboot_return = RestoreFlash(cart);
 				}
 
 				switch (ntrboot_return) {
