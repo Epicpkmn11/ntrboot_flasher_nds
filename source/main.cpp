@@ -1,3 +1,5 @@
+#include <dirent.h>
+#include <fat.h>
 #include <nds.h>
 #include "device.h"
 #include "ui.h"
@@ -10,6 +12,8 @@ int main(void)
 {
 	sysSetBusOwners(true, true); //Give ARM9 access to the cart
 	InitializeScreens(); 
+	fatInitDefault();
+	mkdir("/ntrboot", 0777);
 
 	bool isDevMode = false;																					//Hold START/SELECT/X on boot to enable dev flashing
 	scanKeys();																				                //This is so that noobs don't do a dev flash by accident

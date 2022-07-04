@@ -84,12 +84,6 @@ void menu_lvl1(Flashcart* cart, bool isDevMode)
 		}
 		if (keysDown() & KEY_A)
 		{
-			// GM9i does this to read the card, perhaps this is needed in general. Not sure why the regular flasher doesn't but here goes
-			// wait for cart to actually be detected
-			DrawHeader(BOTTOM_SCREEN, "waiting for card", ((SCREENWIDTH - (14 * FONT_WIDTH)) / 2));
-			while(REG_SCFG_MC != 0x11) swiWaitForVBlank();
-			DrawHeader(BOTTOM_SCREEN, "card ok", ((SCREENWIDTH - (14 * FONT_WIDTH)) / 2));
-			sysSetCardOwner (BUS_OWNER_ARM9);	// Allow arm9 to access NDS cart
 			if (isDSiMode()) {
 				// Reset card slot
 				disableSlot1();
@@ -103,17 +97,6 @@ void menu_lvl1(Flashcart* cart, bool isDevMode)
 					NULL, 0);
 			}
 
-			REG_ROMCTRL=0;
-			REG_AUXSPICNT=0;
-			//ioDelay2(167550);
-			for(int i = 0; i < 25; i++) { swiWaitForVBlank(); }
-			REG_AUXSPICNT=CARD_CR1_ENABLE|CARD_CR1_IRQ;
-			REG_ROMCTRL=CARD_nRESET|CARD_SEC_SEED;
-			while(REG_ROMCTRL&CARD_BUSY) ;
-			cardReset();
-			while(REG_ROMCTRL&CARD_BUSY) ;
-
-			DrawHeader(BOTTOM_SCREEN, "card init", ((SCREENWIDTH - (14 * FONT_WIDTH)) / 2));
 			cart = flashcart_list->at(menu_sel); //Set the cart equal to whatever we had selected from before
 			card.state(NTRState::Key2);
 			if (!cart->initialize(&card)) //If cart initialization fails, do all this and then break to main menu
