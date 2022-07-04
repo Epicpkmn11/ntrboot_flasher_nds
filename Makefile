@@ -9,16 +9,22 @@ export TARGET := $(shell basename $(CURDIR))
 export TOPDIR := $(CURDIR)
 
 # GMAE_ICON is the image used to create the game icon, leave blank to use default rule
-GAME_ICON :=
+GAME_ICON := icon.bmp
 
 # specify a directory which contains the nitro filesystem
 # this is relative to the Makefile
 NITRO_FILES :=
 
 # These set the information text in the nds file
-#GAME_TITLE     := My Wonderful Homebrew
-#GAME_SUBTITLE1 := built with devkitARM
-#GAME_SUBTITLE2 := http://devitpro.org
+GAME_TITLE     := ntrboot_flasher_nds
+#GAME_SUBTITLE  := built with devkitARM
+GAME_AUTHOR    := jason0597 and DS-Homebrew
+
+ifeq ($(strip $(GAME_SUBTITLE)),)
+	export GAME_FULL_TITLE := $(GAME_TITLE);$(GAME_AUTHOR)
+else
+	export GAME_FULL_TITLE := $(GAME_TITLE);$(GAME_SUBTITLE);$(GAME_AUTHOR)
+endif
 
 include $(DEVKITARM)/ds_rules
 
@@ -40,7 +46,7 @@ checkarm9:
 #---------------------------------------------------------------------------------
 $(TARGET).nds : $(NITRO_FILES) arm7/$(TARGET).elf arm9/$(TARGET).elf
 	ndstool	-c $(TARGET).nds -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf \
-	-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)" \
+	-b $(GAME_ICON) "$(GAME_FULL_TITLE)" \
 	$(_ADDFILES)
 
 #---------------------------------------------------------------------------------
