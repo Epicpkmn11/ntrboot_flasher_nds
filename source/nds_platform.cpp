@@ -12,6 +12,24 @@
 
 int progressCount = 0;
 
+bool file_exists(const char* filename) {
+	return access(filename, F_OK) == 0;
+}
+
+return_codes_t mount_fat(void) {
+	if(!file_exists("sd:/") && !file_exists("fat:/")) {
+		return fatInitDefault() ? ALL_OK : FAT_MOUNT_FAILED;
+	}
+	return ALL_OK;
+}
+
+return_codes_t unmount_fat(void) {
+	if(file_exists("fat:/")) {
+		fatUnmount("fat:/");
+	}
+	return ALL_OK;
+}
+
 namespace flashcart_core {
 	namespace platform {
 		void showProgress(std::uint32_t current, std::uint32_t total, const char *status) {
@@ -30,9 +48,7 @@ namespace flashcart_core {
 			if (priority < global_loglevel) { return 0; }
 
 			static bool first_open = true;
-			if (!fatInitDefault()) { return -1; }
-
-			mkdir("/ntrboot", 0700); //If the directory exists, this line isn't going to crash the program or anything like that
+			if (mount_fat() != ALL_OK) { return -1; }
 
 			// Overwrite if this is our first time opening the file.
 			FILE *logfile = fopen("/ntrboot/ntrboot.log", first_open ? "w" : "a");
@@ -56,7 +72,7 @@ namespace flashcart_core {
 
 			int result = vfprintf(logfile, string_to_write, args);
 			fclose(logfile);
-			fatUnmount("fat:/");
+			unmount_fat();
 			va_end(args);
 
 			return result;
@@ -77,15 +93,6 @@ namespace flashcart_core {
 	}
 }
 
-bool file_exists(const char* filename) {
-    if (FILE* file = fopen(filename, "r")) {
-        fclose(file);
-        return true;
-    } else {
-		return false;
-	}
-}
-
 static char* calculate_backup_path(const char *cart_name) {
     int path_len = snprintf(NULL, 0, "/ntrboot/%s-backup.bin", cart_name) + 1;
     char *path = (char *)malloc(path_len);
@@ -95,19 +102,18 @@ static char* calculate_backup_path(const char *cart_name) {
 
 return_codes_t InjectFIRM(flashcart_core::Flashcart* cart, bool isDevMode)
 {
-	if (!fatInitDefault()) { return FAT_MOUNT_FAILED; } //Fat mount failed
-	
+	if (mount_fat() != ALL_OK) { return FAT_MOUNT_FAILED; } //Fat mount failed
+
 	char* backup_path = calculate_backup_path(cart->getShortName());
 
 	if (!file_exists(backup_path)) {
-		fatUnmount("fat:/");
 		free(backup_path);
 		return NO_BACKUP_FOUND;
-	} free(backup_path);
+	}
+	free(backup_path);
 
 	FILE *FileIn = fopen("/ntrboot/boot9strap_ntr.firm", "rb");
 	if (!FileIn) { 
-		fatUnmount("fat:/");
 		return FILE_OPEN_FAILED; 
 	}
 	fseek(FileIn, 0, SEEK_END);
@@ -118,17 +124,16 @@ return_codes_t InjectFIRM(flashcart_core::Flashcart* cart, bool isDevMode)
 	if (fread(FIRM, 1, filesize, FileIn) != filesize) {
 		delete[] FIRM;
 		fclose(FileIn);
-		fatUnmount("fat:/");
 		return FILE_IO_FAILED; //File reading failed
 	}
 	fclose(FileIn);
-	fatUnmount("fat:/"); //We must unmount *before* calling any flashcart_core functions
+	unmount_fat(); //We must unmount *before* calling any flashcart_core functions
 
 	if (!cart->injectNtrBoot((isDevMode) ? blowfish_dev_bin : blowfish_retail_bin, FIRM, filesize)) {
 		delete[] FIRM;
 		return INJECT_OR_DUMP_FAILED; //FIRM injection failed
 	}
-	
+
 	delete[] FIRM;
 	return ALL_OK;
 }
@@ -138,11 +143,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 	u32 Flash_size = cart->getMaxLength(); //Get the flashrom size
 	const u32 chunkSize = 0x80000; // chunk out in half megabyte chunks out to avoid ram limitations
 
-	if (!fatInitDefault()) { return FAT_MOUNT_FAILED; }
-
-	mkdir("/ntrboot", 0700); //If the directory exists, this line isn't going to crash the program or anything like that
-
-	fatUnmount("fat:/");
+	if (mount_fat() != ALL_OK) { return FAT_MOUNT_FAILED; }
 
 	char* backup_path = calculate_backup_path(cart->getShortName());
 
@@ -158,7 +159,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 			return INJECT_OR_DUMP_FAILED; //Flash reading failed
 		}
 
-		if (!fatInitDefault())
+		if (mount_fat() != ALL_OK)
 		{
 			delete[] Flashrom;
 			free(backup_path);
@@ -169,7 +170,6 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 		if (!FileOut) {
 			delete[] Flashrom;
 			fclose(FileOut);
-			fatUnmount("fat:/");
 			free(backup_path);
 			return FILE_OPEN_FAILED; //File opening failed
 		}
@@ -177,13 +177,12 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 		if (fwrite(Flashrom, 1, chunkSize, FileOut) != chunkSize) {
 			delete[] Flashrom;
 			fclose(FileOut);
-			fatUnmount("fat:/");
 			free(backup_path);
 			return FILE_IO_FAILED; //File writing failed
 		}
 
 		fclose(FileOut);
-		fatUnmount("fat:/");
+		unmount_fat();
 	}
 
 	//Draw a black rectangle over the old "Reading at..." message to clear it away
