@@ -192,3 +192,48 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 	delete[] Flashrom;
 	return ALL_OK;
 }
+
+return_codes_t RestoreFlash(flashcart_core::Flashcart* cart)
+{
+	u32 Flash_size = cart->getMaxLength(); //Get the flashrom size
+	const u32 chunkSize = 0x80000; // chunk out in half megabyte chunks out to avoid ram limitations
+
+	if (mount_fat() != ALL_OK) { return FAT_MOUNT_FAILED; }
+
+	char* backup_path = calculate_backup_path(cart->getShortName());
+
+	FILE *FileIn = fopen(backup_path, "rb");
+	if (!FileIn) {
+		free(backup_path);
+		return NO_BACKUP_FOUND; //File opening failed
+	}
+
+	u8 *Flashrom = new u8[chunkSize]; //Allocate a new array to store the flashrom we are about to write to the flashcart
+
+	for (u32 chunkOffset = 0; chunkOffset < Flash_size; chunkOffset += chunkSize) {
+		DrawRectangle(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - FONT_HEIGHT * 2, SCREEN_WIDTH, FONT_HEIGHT, COLOR_BLACK);
+		DrawStringF(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - FONT_HEIGHT * 2, COLOR_WHITE, "Writing at 0x%x", chunkOffset);
+
+		if (fread(Flashrom, 1, chunkSize, FileIn) != chunkSize) {
+			delete[] Flashrom;
+			fclose(FileIn);
+			free(backup_path);
+			return FILE_IO_FAILED; //File reading failed
+		}
+
+		if (!cart->writeFlash(chunkOffset, chunkSize, Flashrom)) {
+			delete[] Flashrom;
+			free(backup_path);
+			fclose(FileIn);
+			return INJECT_OR_DUMP_FAILED; //Flash writing failed
+		}
+	}
+
+	//Draw a black rectangle over the old "Writing at..." message to clear it away
+	DrawRectangle(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - 2 * FONT_HEIGHT, 20 * FONT_WIDTH, FONT_HEIGHT, COLOR_BLACK);
+
+	free(backup_path);
+	fclose(FileIn);
+	delete[] Flashrom;
+	return ALL_OK;
+}
