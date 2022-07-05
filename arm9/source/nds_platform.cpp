@@ -141,7 +141,7 @@ return_codes_t InjectFIRM(flashcart_core::Flashcart* cart, bool isDevMode)
 return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 {
 	u32 Flash_size = cart->getMaxLength(); //Get the flashrom size
-	const u32 chunkSize = 0x80000; // chunk out in half megabyte chunks out to avoid ram limitations
+	const u32 chunkSize = std::min(Flash_size, 0x80000lu); // chunk out in half megabyte chunks out to avoid ram limitations
 
 	if (mount_fat() != ALL_OK) { return FAT_MOUNT_FAILED; }
 
@@ -196,7 +196,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 return_codes_t RestoreFlash(flashcart_core::Flashcart* cart)
 {
 	u32 Flash_size = cart->getMaxLength(); //Get the flashrom size
-	const u32 chunkSize = 0x80000; // chunk out in half megabyte chunks out to avoid ram limitations
+	const u32 chunkSize = std::min(Flash_size, 0x80000lu); // chunk out in half megabyte chunks out to avoid ram limitations
 
 	if (mount_fat() != ALL_OK) { return FAT_MOUNT_FAILED; }
 
