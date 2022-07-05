@@ -157,6 +157,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 		if (!cart->readFlash(chunkOffset, chunkSize, Flashrom)) {
 			delete[] Flashrom;
 			free(backup_path);
+			SetProgressOverride(0, 0); // Reset override
 			return INJECT_OR_DUMP_FAILED; //Flash reading failed
 		}
 
@@ -164,6 +165,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 		{
 			delete[] Flashrom;
 			free(backup_path);
+			SetProgressOverride(0, 0); // Reset override
 			return FAT_MOUNT_FAILED; //Fat init failed
 		}
 
@@ -172,6 +174,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 			delete[] Flashrom;
 			fclose(FileOut);
 			free(backup_path);
+			SetProgressOverride(0, 0); // Reset override
 			return FILE_OPEN_FAILED; //File opening failed
 		}
 
@@ -179,6 +182,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 			delete[] Flashrom;
 			fclose(FileOut);
 			free(backup_path);
+			SetProgressOverride(0, 0); // Reset override
 			return FILE_IO_FAILED; //File writing failed
 		}
 
@@ -186,8 +190,8 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 		unmount_fat();
 	}
 
-	//Draw a black rectangle over the old "Reading at..." message to clear it away
-	DrawRectangle(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - 2 * FONT_HEIGHT, 20 * FONT_WIDTH, FONT_HEIGHT, COLOR_BLACK);
+	SetProgressOverride(0, 0); // Reset override
+	ShowProgress(BOTTOM_SCREEN, Flash_size, Flash_size, "");
 
 	free(backup_path);
 	delete[] Flashrom;
@@ -220,6 +224,7 @@ return_codes_t RestoreFlash(flashcart_core::Flashcart* cart)
 			delete[] Flashrom;
 			fclose(FileIn);
 			free(backup_path);
+			SetProgressOverride(0, 0); // Reset override
 			return FILE_IO_FAILED; //File reading failed
 		}
 
@@ -227,12 +232,13 @@ return_codes_t RestoreFlash(flashcart_core::Flashcart* cart)
 			delete[] Flashrom;
 			free(backup_path);
 			fclose(FileIn);
+			SetProgressOverride(0, 0); // Reset override
 			return INJECT_OR_DUMP_FAILED; //Flash writing failed
 		}
 	}
 
-	//Draw a black rectangle over the old "Writing at..." message to clear it away
-	DrawRectangle(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - 2 * FONT_HEIGHT, 20 * FONT_WIDTH, FONT_HEIGHT, COLOR_BLACK);
+	SetProgressOverride(0, 0); // Reset override
+	ShowProgress(BOTTOM_SCREEN, Flash_size, Flash_size, "");
 
 	free(backup_path);
 	fclose(FileIn);
