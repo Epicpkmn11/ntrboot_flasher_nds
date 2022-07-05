@@ -110,7 +110,7 @@ void menu_lvl1(Flashcart* cart, bool isDevMode)
 		if (keysDown() & KEY_A)
 		{
 			cart = flashcart_list->at(menu_sel); //Set the cart equal to whatever we had selected from before
-			if(isDSiMode()) card.init();
+			if(isDSiMode() || strcmp(cart->getShortName(), "DSTT") == 0) card.init();
 			else card.state(NTRState::Key2);
 			if (!cart->initialize(&card)) //If cart initialization fails, do all this and then break to main menu
 			{
