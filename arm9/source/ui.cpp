@@ -130,6 +130,15 @@ void DrawStringF(u16 *screen, int x, int y, u16 color, const char *format, ...)
 	}
 }
 
+uint32_t progress_current_override = 0;
+uint32_t progress_total_override = 0;
+
+void SetProgressOverride(uint32_t current, uint32_t total)
+{
+	progress_current_override = current;
+	progress_total_override = total;
+}
+
 //https://github.com/ntrteam/ntrboot_flasher/blob/master/source/common/ui.cpp#L201
 void ShowProgress(u16 *screen, uint32_t current, uint32_t total, const char* status)
 {
@@ -139,6 +148,10 @@ void ShowProgress(u16 *screen, uint32_t current, uint32_t total, const char* sta
 	const uint16_t bar_pos_y = (SCREEN_HEIGHT / 2) - (bar_height / 2);
 	const uint16_t text_pos_x = bar_pos_x + (bar_width / 2) - (FONT_WIDTH * 2);
 	const uint16_t text_pos_y = bar_pos_y + 1;
+
+	// Apply overrides
+	if (progress_total_override) total = progress_total_override;
+	current += progress_current_override;
 
 	static uint32_t last_prog_width = 1;
 	uint32_t prog_width = ((total > 0) && (current <= total)) ? (current * (bar_width - 4)) / total : 0;

@@ -49,6 +49,7 @@ void DrawCharacter(u16 *screen, int character, int x, int y, u16 color);
 void DrawString(u16 *screen, int x, int y, u16 color, const char *str);
 void DrawStringF(u16 *screen, int x, int y, u16 color, const char *format, ...);
 
+void SetProgressOverride(uint32_t current, uint32_t total);
 void ShowProgress(u16 *screen, uint32_t current, uint32_t total, const char* status);
 void DrawHeader(u16* screen, const char *str, int offset);
 void DrawInfo(int loglevel);

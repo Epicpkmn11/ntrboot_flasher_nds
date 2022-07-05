@@ -152,6 +152,7 @@ return_codes_t DumpFlash(flashcart_core::Flashcart* cart)
 	for (u32 chunkOffset = 0; chunkOffset < Flash_size; chunkOffset += chunkSize) {
 		DrawRectangle(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - FONT_HEIGHT * 2, SCREEN_WIDTH, FONT_HEIGHT, COLOR_BLACK);
 		DrawStringF(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - FONT_HEIGHT * 2, COLOR_WHITE, "Reading at 0x%x", chunkOffset);
+		SetProgressOverride(chunkOffset, Flash_size);
 
 		if (!cart->readFlash(chunkOffset, chunkSize, Flashrom)) {
 			delete[] Flashrom;
@@ -213,6 +214,7 @@ return_codes_t RestoreFlash(flashcart_core::Flashcart* cart)
 	for (u32 chunkOffset = 0; chunkOffset < Flash_size; chunkOffset += chunkSize) {
 		DrawRectangle(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - FONT_HEIGHT * 2, SCREEN_WIDTH, FONT_HEIGHT, COLOR_BLACK);
 		DrawStringF(TOP_SCREEN, FONT_WIDTH, SCREEN_HEIGHT - FONT_HEIGHT * 2, COLOR_WHITE, "Writing at 0x%x", chunkOffset);
+		SetProgressOverride(chunkOffset, Flash_size);
 
 		if (fread(Flashrom, 1, chunkSize, FileIn) != chunkSize) {
 			delete[] Flashrom;
