@@ -83,7 +83,7 @@ namespace flashcart_core {
 			switch (key) {
 				default:
 				case BlowfishKey::NTR:
-					return *static_cast<const std::uint8_t(*)[0x1048]>(static_cast<const void *>(blowfish_ntr_bin));
+					return *reinterpret_cast<const std::uint8_t(*)[0x1048]>(0x01FFE428);
 				case BlowfishKey::B9Retail:
 					return *static_cast<const std::uint8_t(*)[0x1048]>(static_cast<const void *>(blowfish_retail_bin));
 				case BlowfishKey::B9Dev:
