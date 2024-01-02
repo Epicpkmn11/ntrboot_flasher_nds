@@ -151,13 +151,14 @@ void menu_lvl2(Flashcart* cart, bool isDevMode)
 	{
 		scanKeys();
 		DrawString(TOP_SCREEN, FONT_WIDTH, (2 * FONT_HEIGHT), (menu_sel == 0) ? COLOR_RED : COLOR_WHITE, "Inject FIRM");	//0
-		DrawString(TOP_SCREEN, FONT_WIDTH, (3 * FONT_HEIGHT), (menu_sel == 1) ? COLOR_RED : COLOR_WHITE, "Dump flash");		//1
+		DrawString(TOP_SCREEN, FONT_WIDTH, (3 * FONT_HEIGHT), (menu_sel == 1) ? COLOR_RED : COLOR_WHITE, "Inject GCD");		//1
+		DrawString(TOP_SCREEN, FONT_WIDTH, (4 * FONT_HEIGHT), (menu_sel == 2) ? COLOR_RED : COLOR_WHITE, "Dump flash");		//2
 		if(isDSiMode())
 		{
-			DrawString(TOP_SCREEN, FONT_WIDTH, (4 * FONT_HEIGHT), (menu_sel == 2) ? COLOR_RED : COLOR_WHITE, "Restore flash");	//2
+			DrawString(TOP_SCREEN, FONT_WIDTH, (5 * FONT_HEIGHT), (menu_sel == 3) ? COLOR_RED : COLOR_WHITE, "Restore flash");	//3
 		}
 
-		if (keysDown() & KEY_DOWN && menu_sel < (isDSiMode() ? 2 : 1))
+		if (keysDown() & KEY_DOWN && menu_sel < (isDSiMode() ? 3 : 2))
 		{
 			menu_sel++;
 		}
@@ -173,15 +174,24 @@ void menu_lvl2(Flashcart* cart, bool isDevMode)
 		
 		if (keysDown() & KEY_A)
 		{
-			DrawString(TOP_SCREEN, (2 * FONT_WIDTH), (8 * FONT_HEIGHT), COLOR_WHITE, (menu_sel == 0) ? "About to inject FIRM!\nEnter button combination to proceed:" : "About to dump flash!\nEnter button combination to proceed:");
+			const char *menu_strings[] = {
+				"About to inject FIRM!\nEnter button combination to proceed:",
+				"About to inject GCD!\nEnter button combination to proceed:",
+				"About to dump flash!\nEnter button combination to proceed:",
+				"About to restore flash!\nEnter button combination to proceed:"
+			};
+
+			DrawString(TOP_SCREEN, (2 * FONT_WIDTH), (8 * FONT_HEIGHT), COLOR_WHITE, menu_strings[menu_sel]);
 			if (d0k3_buttoncombo(10 * FONT_WIDTH, 12 * FONT_HEIGHT))
 			{
 				ClearScreen(BOTTOM_SCREEN, COLOR_BLACK);
 				if (menu_sel == 0) {
-					ntrboot_return = InjectFIRM(cart, isDevMode);
+					ntrboot_return = InjectFIRM(cart, false, isDevMode);
 				} else if (menu_sel == 1) {
-					ntrboot_return = DumpFlash(cart);
+					ntrboot_return = InjectFIRM(cart, true, isDevMode);
 				} else if (menu_sel == 2) {
+					ntrboot_return = DumpFlash(cart);
+				} else if (menu_sel == 3) {
 					ntrboot_return = RestoreFlash(cart);
 				}
 
@@ -199,15 +209,24 @@ void menu_lvl2(Flashcart* cart, bool isDevMode)
 						break;
 
 					case FILE_IO_FAILED:
-						DrawString(TOP_SCREEN, (2 * FONT_WIDTH), (15 * FONT_HEIGHT), COLOR_RED, (menu_sel == 0) ? "Failed to read file!\nPress <B> to return to menu..." : "Failed to write file!\nPress <B> to return to menu...");
+						DrawString(TOP_SCREEN, (2 * FONT_WIDTH), (15 * FONT_HEIGHT), COLOR_RED, (menu_sel == 2) ? "Failed to write file!\nPress <B> to return to menu..." : "Failed to read file!\nPress <B> to return to menu...");
 						WaitPress(KEY_B);
 						ClearScreen(TOP_SCREEN, COLOR_BLACK);
 						break;
 
 					case INJECT_OR_DUMP_FAILED:
-						DrawString(TOP_SCREEN, (2 * FONT_WIDTH), (15 * FONT_HEIGHT), COLOR_RED, (menu_sel == 0) ? "Failed to inject FIRM!\nPress <B> to return to menu..." : "Failed to dump flash!\nPress <B> to return to menu...");
-						WaitPress(KEY_B);
-						ClearScreen(TOP_SCREEN, COLOR_BLACK);
+						{
+							const char *err_strings[] = {
+								"Failed to inject FIRM!\nPress <B> to return to menu...",
+								"Failed to inject GCD!\nPress <B> to return to menu...",
+								"Failed to dump flash!\nPress <B> to return to menu...",
+								"Failed to restore flash!\nPress <B> to return to menu..."
+							};
+
+							DrawString(TOP_SCREEN, (2 * FONT_WIDTH), (15 * FONT_HEIGHT), COLOR_RED, err_strings[menu_sel]);
+							WaitPress(KEY_B);
+							ClearScreen(TOP_SCREEN, COLOR_BLACK);
+						}
 						break;
 
 					case NO_BACKUP_FOUND:
